@@ -22,12 +22,25 @@ class CotaEsgotadaError(RuntimeError):
 
 
 def codigo_http(erro: Exception) -> int | None:
-    """Extrai o código HTTP de erros do SDK google-genai (atributo .code)."""
-    return getattr(erro, "code", None)
+    """Extrai o código HTTP do erro, qualquer que seja o SDK.
+
+    O SDK da OpenAI expõe `.status_code` (int). Alguns SDKs (ex.: google-genai)
+    expõem `.code` como o próprio status HTTP — mas na OpenAI `.code` é uma
+    string do corpo do erro (ex.: 'rate_limit_exceeded'), não o status HTTP.
+    Por isso só usamos `.code` quando ele já vem como int.
+    """
+    codigo = getattr(erro, "code", None)
+    if isinstance(codigo, int):
+        return codigo
+    return getattr(erro, "status_code", None)
 
 
 def atraso_sugerido(erro: Exception) -> float | None:
-    """Lê o 'retryDelay' (ex.: '37s') que a API do Gemini manda junto do 429."""
+    """Lê o 'retryDelay' (ex.: '37s') que algumas APIs mandam junto do 429.
+
+    A OpenAI não manda essa dica — nesse caso o regex simplesmente não casa
+    e caímos no backoff exponencial (calcular_espera).
+    """
     texto = str(getattr(erro, "details", "")) + str(erro)
     achado = re.search(r"retryDelay['\"]?\s*[:=]\s*['\"]?(\d+(?:\.\d+)?)s", texto)
     return float(achado.group(1)) if achado else None
@@ -63,7 +76,7 @@ def com_retry(max_tentativas: int = 5, base: float = 2.0, teto: float = 60.0,
                     if tentativa == max_tentativas:
                         raise CotaEsgotadaError(
                             f"API continuou respondendo {codigo} após {max_tentativas} "
-                            "tentativas. Verifique sua cota no Google AI Studio."
+                            "tentativas. Verifique sua cota em platform.openai.com/usage."
                         ) from erro
                     espera = atraso_sugerido(erro) or calcular_espera(tentativa, base, teto)
                     print(f"[retry] erro {codigo} — tentativa {tentativa}/{max_tentativas}, "

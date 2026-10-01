@@ -17,12 +17,12 @@ def test_pacote_do_agente_importa():
 
 def test_bibliotecas_instaladas():
     import deepeval  # noqa: F401
-    from google import genai  # noqa: F401
+    import openai  # noqa: F401
 
 
 def test_env_example_tem_as_variaveis_obrigatorias():
     conteudo = (RAIZ / ".env.example").read_text(encoding="utf-8")
-    for variavel in ["GOOGLE_API_KEY", "MODELO_AGENTE", "MODELO_JUIZ"]:
+    for variavel in ["OPENAI_API_KEY", "MODELO_AGENTE", "MODELO_JUIZ"]:
         assert variavel in conteudo
 
 
@@ -33,6 +33,6 @@ def test_env_esta_no_gitignore():
 
 def test_config_reclama_quando_chave_falta(monkeypatch):
     from agente.config import ConfiguracaoInvalidaError, carregar_configuracao
-    monkeypatch.setenv("GOOGLE_API_KEY", "cole-sua-chave-aqui")
+    monkeypatch.setenv("OPENAI_API_KEY", "cole-sua-chave-aqui")
     with pytest.raises(ConfiguracaoInvalidaError):
         carregar_configuracao()

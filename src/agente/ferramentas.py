@@ -57,3 +57,49 @@ def consultar_calendario(evento: str) -> dict:
 
 
 FERRAMENTAS = [calcular_media, consultar_calendario]
+
+# A API da OpenAI (diferente da do Gemini) não lê docstring/type hints para
+# descobrir como chamar a ferramenta: precisamos declarar o JSON Schema à mão.
+FERRAMENTAS_OPENAI = [
+    {
+        "type": "function",
+        "function": {
+            "name": "calcular_media",
+            "description": (
+                "Calcula a média aritmética das notas e informa a situação do "
+                "aluno ('aprovado', 'prova final' ou 'reprovado')."
+            ),
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "notas": {
+                        "type": "array",
+                        "items": {"type": "number"},
+                        "description": "Lista de notas entre 0 e 10.",
+                    },
+                },
+                "required": ["notas"],
+            },
+        },
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "consultar_calendario",
+            "description": "Consulta a data de um evento do calendário acadêmico.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "evento": {
+                        "type": "string",
+                        "description": (
+                            "Um de: 'inicio_aulas', 'fim_semestre', 'prova_final', "
+                            "'trancamento'."
+                        ),
+                    },
+                },
+                "required": ["evento"],
+            },
+        },
+    },
+]

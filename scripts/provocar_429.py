@@ -13,7 +13,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
 
-from google import genai  # noqa: E402
+from openai import OpenAI  # noqa: E402
 
 from agente.config import carregar_configuracao  # noqa: E402
 from agente.resiliencia import CotaEsgotadaError, LimitadorDeTaxa, com_retry  # noqa: E402
@@ -24,13 +24,15 @@ parser.add_argument("--n", type=int, default=20, help="quantidade de chamadas")
 args = parser.parse_args()
 
 cfg = carregar_configuracao()
-cliente = genai.Client(api_key=cfg.google_api_key)
+cliente = OpenAI(api_key=cfg.openai_api_key)
 
 
 def chamar(i: int) -> str:
-    r = cliente.models.generate_content(model=cfg.modelo_agente,
-                                        contents=f"Responda só com o número {i}.")
-    return r.text.strip()
+    r = cliente.chat.completions.create(
+        model=cfg.modelo_agente,
+        messages=[{"role": "user", "content": f"Responda só com o número {i}."}],
+    )
+    return r.choices[0].message.content.strip()
 
 
 if args.modo == "resiliente":
@@ -57,6 +59,7 @@ for i in range(1, args.n + 1):
         break
     except Exception as erro:  # noqa: BLE001
         falhas += 1
-        print(f"[{t:6.1f}s] #{i:02d} ❌ {getattr(erro, 'code', '?')} {str(erro)[:90]}")
+        codigo = getattr(erro, "status_code", getattr(erro, "code", "?"))
+        print(f"[{t:6.1f}s] #{i:02d} ❌ {codigo} {str(erro)[:90]}")
 
 print(f"\nTotal: {ok} ok, {falhas} falhas em {time.monotonic() - inicio:.1f}s")

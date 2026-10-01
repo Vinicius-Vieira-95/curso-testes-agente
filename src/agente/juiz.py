@@ -3,8 +3,8 @@ from agente.config import carregar_configuracao
 
 
 def criar_juiz():
-    from deepeval.models import GeminiModel
+    from deepeval.models import OpenAIModel
 
     cfg = carregar_configuracao()
     # temperature=0: queremos o juiz o mais consistente possível entre execuções
-    return GeminiModel(model=cfg.modelo_juiz, api_key=cfg.google_api_key, temperature=0)
+    return OpenAIModel(model=cfg.modelo_juiz, api_key=cfg.openai_api_key, temperature=0)

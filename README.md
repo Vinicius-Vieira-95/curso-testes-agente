@@ -1,6 +1,6 @@
 # Testes de Agentes baseados em LLM — Repositório do Curso
 
-Assistente acadêmico (Gemini) + suíte de testes em duas camadas:
+Assistente acadêmico (OpenAI/GPT) + suíte de testes em duas camadas:
 
 | Camada | Arquivos | Precisa de chave? | Roda em |
 |---|---|---|---|
@@ -15,7 +15,7 @@ python -m venv .venv
 source .venv/bin/activate          # Windows: .venv\Scripts\activate
 pip install -r requirements.txt
 cp .env.example .env               # Windows: copy .env.example .env
-# edite o .env e cole sua GOOGLE_API_KEY (https://aistudio.google.com/apikey)
+# edite o .env e cole sua OPENAI_API_KEY (https://platform.openai.com/api-keys)
 python scripts/verificar_ambiente.py
 ```
 
@@ -27,7 +27,7 @@ python scripts/verificar_ambiente.py
 3. Abra o `requirements.txt` → **Install requirements** (ou `pip install -r requirements.txt` no terminal, Alt+F12).
 4. Botão direito em `src` → **Mark Directory as → Sources Root**.
 5. Settings → Tools → Python Integrated Tools → **Default test runner: pytest**.
-6. Copie `.env.example` para `.env` e cole sua chave.
+6. Copie `.env.example` para `.env` e cole sua chave da OpenAI.
 7. Botão direito em `scripts/verificar_ambiente.py` → **Run**.
 8. Run → Edit Configurations → **+ → Python tests → pytest**, pasta `tests`:
    - *Testes rápidos*: Additional Arguments `-m "not llm"`
@@ -38,7 +38,7 @@ python scripts/verificar_ambiente.py
 
 ```bash
 pytest -m "not llm"                # rápidos, grátis, sem internet
-pytest -m llm -v                   # chamam o Gemini (consomem cota)
+pytest -m llm -v                   # chamam a OpenAI (consomem cota)
 deepeval test run tests -m llm     # mesmo que acima, com relatório do DeepEval
 ```
 
@@ -46,7 +46,7 @@ deepeval test run tests -m llm     # mesmo que acima, com relatório do DeepEval
 
 `.github/workflows/testes.yml` roda os testes determinísticos em todo push/PR e a
 avaliação com LLM depois deles. Cadastre a chave em
-**Settings → Secrets and variables → Actions → New repository secret** com o nome `GOOGLE_API_KEY`.
+**Settings → Secrets and variables → Actions → New repository secret** com o nome `OPENAI_API_KEY`.
 
 ## Estrutura
 
@@ -55,7 +55,7 @@ src/agente/
   config.py            # lê o .env (único lugar que toca em variáveis de ambiente)
   ferramentas.py       # tools determinísticas: calcular_media, consultar_calendario
   base_conhecimento.py # "RAG" simplificado por palavra-chave
-  agente.py            # orquestra contexto + Gemini + ferramentas -> RespostaAgente
+  agente.py            # orquestra contexto + OpenAI + ferramentas -> RespostaAgente
   resiliencia.py       # retry com backoff exponencial, limitador de taxa, erro 429
   juiz.py              # modelo juiz do DeepEval
 scripts/verificar_ambiente.py   # teste de sanidade do ambiente

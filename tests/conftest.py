@@ -12,7 +12,7 @@ from agente.config import chave_configurada
 def pytest_collection_modifyitems(config, items):
     if chave_configurada():
         return
-    pular = pytest.mark.skip(reason="GOOGLE_API_KEY ausente — teste com LLM pulado")
+    pular = pytest.mark.skip(reason="OPENAI_API_KEY ausente — teste com LLM pulado")
     for item in items:
         if "llm" in item.keywords:
             item.add_marker(pular)

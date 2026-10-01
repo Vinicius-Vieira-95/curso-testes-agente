@@ -43,7 +43,7 @@ else:
            "No terminal: source .venv/bin/activate  (Windows: .venv\\Scripts\\activate)")
 
 print("\n2) Dependências")
-for pacote in ["google-genai", "deepeval", "python-dotenv", "pytest"]:
+for pacote in ["openai", "deepeval", "python-dotenv", "pytest"]:
     try:
         checar(f"{pacote} {md.version(pacote)}", True)
     except md.PackageNotFoundError:
@@ -57,10 +57,10 @@ else:
 try:
     from agente.config import ConfiguracaoInvalidaError, carregar_configuracao
     cfg = carregar_configuracao()
-    checar(f"GOOGLE_API_KEY configurada (termina em ...{cfg.google_api_key[-4:]})", True)
+    checar(f"OPENAI_API_KEY configurada (termina em ...{cfg.openai_api_key[-4:]})", True)
 except ConfiguracaoInvalidaError as erro:
     cfg = None
-    checar("GOOGLE_API_KEY configurada", False, str(erro))
+    checar("OPENAI_API_KEY configurada", False, str(erro))
 except ImportError as erro:
     cfg = None
     checar("Pacote do agente importável", False, str(erro))
@@ -72,17 +72,20 @@ elif cfg is None:
     print("  ⏭️  pulado (sem chave)")
 else:
     try:
-        from google import genai
-        cliente = genai.Client(api_key=cfg.google_api_key)
-        r = cliente.models.generate_content(model=cfg.modelo_agente,
-                                            contents="Responda apenas: OK")
-        checar(f"{cfg.modelo_agente} respondeu: {r.text.strip()!r}", True)
+        from openai import OpenAI
+        cliente = OpenAI(api_key=cfg.openai_api_key)
+        r = cliente.chat.completions.create(
+            model=cfg.modelo_agente,
+            messages=[{"role": "user", "content": "Responda apenas: OK"}],
+        )
+        texto = r.choices[0].message.content.strip()
+        checar(f"{cfg.modelo_agente} respondeu: {texto!r}", True)
     except Exception as erro:  # noqa: BLE001 — queremos mostrar qualquer erro ao aluno
-        codigo = getattr(erro, "code", "?")
+        codigo = getattr(erro, "status_code", getattr(erro, "code", "?"))
         dicas = {400: "Nome do modelo inválido? Confira MODELO_AGENTE no .env",
-                 401: "Chave inválida — gere outra no AI Studio",
-                 403: "Chave sem permissão / API não habilitada",
-                 429: "Limite de requisições atingido — espere 1 minuto (veremos isso no Módulo 2)"}
+                 401: "Chave inválida — gere outra em platform.openai.com/api-keys",
+                 403: "Chave sem permissão / organização sem acesso ao modelo",
+                 429: "Limite de requisições/cota atingido — espere um pouco (veremos isso no Módulo 2)"}
         checar(f"Chamada à API (erro {codigo})", False, dicas.get(codigo, str(erro)[:200]))
 
 print(f"\n{'🎉 Ambiente pronto!' if falhas == 0 else f'⚠️  {falhas} problema(s) encontrado(s).'}\n")

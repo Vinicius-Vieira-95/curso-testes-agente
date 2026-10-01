@@ -19,7 +19,7 @@ class ConfiguracaoInvalidaError(RuntimeError):
 
 @dataclass(frozen=True)
 class Configuracao:
-    google_api_key: str
+    openai_api_key: str
     modelo_agente: str
     modelo_juiz: str
     max_tentativas: int
@@ -27,16 +27,16 @@ class Configuracao:
 
 
 def carregar_configuracao() -> Configuracao:
-    chave = os.getenv("GOOGLE_API_KEY", "").strip()
+    chave = os.getenv("OPENAI_API_KEY", "").strip()
     if not chave or chave == VALOR_DE_EXEMPLO:
         raise ConfiguracaoInvalidaError(
-            "GOOGLE_API_KEY não encontrada. Copie .env.example para .env "
-            "e cole sua chave do Google AI Studio."
+            "OPENAI_API_KEY não encontrada. Copie .env.example para .env "
+            "e cole sua chave da OpenAI (https://platform.openai.com/api-keys)."
         )
     return Configuracao(
-        google_api_key=chave,
-        modelo_agente=os.getenv("MODELO_AGENTE", "gemini-3.5-flash-lite"),
-        modelo_juiz=os.getenv("MODELO_JUIZ", "gemini-3.5-flash"),
+        openai_api_key=chave,
+        modelo_agente=os.getenv("MODELO_AGENTE", "gpt-5.4-mini"),
+        modelo_juiz=os.getenv("MODELO_JUIZ", "gpt-5.4"),
         max_tentativas=int(os.getenv("MAX_TENTATIVAS", "5")),
         requisicoes_por_minuto=int(os.getenv("REQUISICOES_POR_MINUTO", "10")),
     )
