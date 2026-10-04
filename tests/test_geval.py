@@ -15,7 +15,14 @@ def metrica_correcao(juiz):
     """Compara a resposta com o gabarito (expected_output)."""
     return GEval(
         name="Correção",
-        criteria="Verifique se a resposta real está factualmente de acordo com a resposta esperada.",
+        # Passos fixos em vez de `criteria`: com criteria o juiz gerava passos do tipo
+        # "marque como correta", respondia em escala 0/1 e o deepeval lia "1" como 1/10.
+        evaluation_steps=[
+            "Identifique na resposta esperada o fato que responde à pergunta.",
+            "Verifique se a resposta real afirma o mesmo fato, sem contradizê-lo.",
+            "Penalize informações inventadas ou que contradigam a resposta esperada.",
+            "Diferenças de redação ou detalhes extras compatíveis NÃO devem reduzir a nota.",
+        ],
         evaluation_params=[P.INPUT, P.ACTUAL_OUTPUT, P.EXPECTED_OUTPUT],
         threshold=0.7,
         model=juiz,
